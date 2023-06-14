@@ -4,4 +4,5 @@ export enum TokenType {
 	Operator,
 	Parenthesis,
 	Keyword,
+	CommandSeparator
 }

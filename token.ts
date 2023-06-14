@@ -3,9 +3,13 @@ import { TokenType } from "./tokenType";
 export class Token {
 	type: TokenType;
 	value: string;
-
-	constructor(type: TokenType, value: string) {
-		this.type = type;
-		this.value = value;
+	position: number;
+	line: number;
+  
+	constructor(type: TokenType, value: string, position: number, line: number) {
+	  this.type = type;
+	  this.value = value;
+	  this.position = position;
+	  this.line = line;
 	}
-}
+  }
