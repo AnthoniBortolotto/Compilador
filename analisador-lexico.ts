@@ -222,58 +222,9 @@ export class Lexer {
 			this.error();
 			this.advance();
 		}
-
+		tokens.push(new Token(TokenType.EOF, "", this.position, this.line));
 		return tokens;
 	}
-	/* 
-	getNextToken() {
-		while (this.currentChar !== null) {
-			const currentPosition = this.position;
-
-			if (this.isWhitespace(this.currentChar)) {
-				this.advance();
-				continue;
-			}
-
-			if (this.isLetter(this.currentChar)) {
-				return this.getIdentifierToken(currentPosition);
-			}
-
-			if (this.isDigit(this.currentChar)) {
-				return this.getNumberToken(currentPosition);
-			}
-
-			if (this.currentChar === "+") {
-				this.advance();
-				return new Token(TokenType.Operator, "+", currentPosition);
-			}
-
-			if (this.currentChar === "-") {
-				this.advance();
-				return new Token(TokenType.Operator, "-", currentPosition);
-			}
-
-			if (this.currentChar === "(") {
-				this.advance();
-				return new Token(TokenType.Parenthesis, "(", currentPosition);
-			}
-
-			if (this.currentChar === ")") {
-				this.advance();
-				return new Token(TokenType.Parenthesis, ")", currentPosition);
-			}
-
-			if (this.currentChar === "i" && this.input.slice(this.position, this.position + 2) === "if") {
-				this.advance();
-				this.advance();
-				return new Token(TokenType.Keyword, "if", currentPosition);
-			}
-
-			this.error(`Unrecognized character: ${this.currentChar}`);
-		}
-
-		return new Token(TokenType.Identifier, "", this.position);
-	} */
 
 	//tokens identifications
 

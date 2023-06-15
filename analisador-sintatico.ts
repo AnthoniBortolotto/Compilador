@@ -1,88 +1,97 @@
+import { Lexer } from "./analisador-lexico";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
 
 export class Parser {
-	tokens: Token[];
-	currentToken: Token | null;
-	currentIndex: number;
+  lexer: Lexer;
+  lexerPosition: number;
+  currentToken: Token;
+  tokenList: Token[];
 
-	constructor(tokens: Token[]) {
-		this.tokens = tokens;
-		this.currentIndex = 0;
-		this.currentToken = tokens[0] || null;
-	}
+  constructor(input: string) {
+    this.lexer = new Lexer(input);
+	this.lexerPosition = 0;
+    this.tokenList = this.lexer.getAllTokens();
+	this.currentToken = this.tokenList[this.lexerPosition]
+  }
 
-	advance() {
-		this.currentIndex++;
-		this.currentToken = this.tokens[this.currentIndex] || null;
-	}
+  match(tokenType: TokenType) {
+    if (this.currentToken.type === tokenType) {
+      this.consumeToken();
+    } else {
+      throw new Error(`Syntax error: Expected ${tokenType}, found ${this.currentToken.type}`);
+    }
+  }
 
-	error(message: string) {
-		const position = this.currentToken ? this.currentToken.position : -1;
-		throw new Error(`Syntax error at position ${position}: ${message}`);
-	}
+  consumeToken() {
+    this.currentToken = this.tokenList[++this.lexerPosition];
+  }
 
-	parse() {
-		return this.expr();
-	}
+  program() {
+    this.statementList();
+    this.match(TokenType.EOF);
+  }
 
-	factor() {
-		const token = this.currentToken;
+  statementList() {
+    this.statement();
+    this.statementListTail();
+  }
 
-		if (token?.type === TokenType.Number) {
-			this.advance();
-			return parseFloat(token.value);
-		} else if (token?.type === TokenType.Identifier) {
-			this.advance();
-			return token.value;
-		} else if (token?.type === TokenType.Parenthesis && token.value === "(") {
-			this.advance();
-			const result = this.expr();
-			if (this.currentToken?.type === TokenType.Parenthesis && this.currentToken.value === ")") {
-				this.advance();
-				return result;
-			} else {
-				this.error("Missing closing parenthesis");
-			}
-		} else {
-			this.error("Invalid token");
-		}
-	}
+  statementListTail() {
+    if (this.currentToken.type === TokenType.CommandSeparator) {
+      this.match(TokenType.CommandSeparator);
+      this.statement();
+      this.statementListTail();
+    }
+  }
 
-	term() {
-		let result = this.factor();
+  statement() {
+    switch (this.currentToken.type) {
+      case TokenType.Keyword:
+        this.keyword();
+        break;
+      case TokenType.Identifier:
+        this.identifier();
+        break;
+      case TokenType.Number:
+        this.number();
+        break;
+      default:
+        throw new Error(`Syntax error: Unexpected token ${this.currentToken.type}`);
+    }
+  }
 
-		while (this.currentToken?.type === TokenType.Operator && ["*", "/"].includes(this.currentToken.value)) {
-			const operator = this.currentToken.value;
-			this.advance();
-			const nextFactor = this.factor();
+  keyword() {
+    if (this.currentToken.value === "if") {
+      this.match(TokenType.Keyword);
+    } else if (this.currentToken.value === "else") {
+      this.match(TokenType.Keyword);
+    } else if (this.currentToken.value === "while") {
+      this.match(TokenType.Keyword);
+    } else {
+      throw new Error(`Syntax error: Unexpected keyword ${this.currentToken.value}`);
+    }
+  }
 
-			if (operator === "*") {
-				result *= nextFactor;
-			} else if (operator === "/") {
-				result /= nextFactor;
-			}
-		}
+  identifier() {
+    this.match(TokenType.Identifier);
+  }
 
-		return result;
-	}
+  number() {
+    this.match(TokenType.Number);
+  }
 
-	expr() {
-		let result = this.term();
-
-		while (this.currentToken?.type === TokenType.Operator && ["+", "-"].includes(this.currentToken.value)) {
-			const operator = this.currentToken.value;
-			this.advance();
-			const nextTerm = this.term();
-
-			if (operator === "+") {
-				result += nextTerm;
-			} else if (operator === "-") {
-				result -= nextTerm;
-			}
-		}
-
-		return result;
-	}
+  parse() {
+    try {
+      this.program();
+      console.log("Parsing completed successfully.");
+    } catch (error) {
+      console.log("Parsing failed. Error:");
+    }
+  }
 }
 
+// Usage example
+const input = "if x > 0 { y = x; } else { y = -x; }";
+const parser = new Parser(input);
+parser.parse();

@@ -8,4 +8,5 @@ export enum TokenType {
 	Assignment,
 	StringDelimiter,
 	Bracket,
+	EOF
 }
