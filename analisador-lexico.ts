@@ -31,8 +31,8 @@ export class Lexer {
 		this.currentChar = input[0] || null;
 	}
 
-	advance() {
-		this.position++;
+	advance(advanceQuantity = 1) {
+		this.position += advanceQuantity;
 		this.currentChar = this.input[this.position] || null;
 	}
 
@@ -53,6 +53,14 @@ export class Lexer {
 				this.position > 2 ? this.input[this.position - 2] : ""
 			}${this.position > 2 ? this.input[this.position - 1] : ""}${this.input[this.position]}`
 		);
+		this.input = this.input.replace(this.input[this.position], "$"); // replace the unrecognized char with a $
+	}
+
+	verifyKeyword(keyword: string, nextAction: Function) {
+		if (this.currentChar === keyword[0] && this.input.slice(this.position, this.position + keyword.length) === keyword) {
+			this.advance(keyword.length);
+			nextAction();
+		}
 	}
 
 	getAllTokens() {
@@ -75,10 +83,83 @@ export class Lexer {
 				continue;
 			}
 
+			// keywords
+
+			// if
 			if (this.currentChar === "i" && this.input.slice(this.position, this.position + 2) === "if") {
-				this.advance();
-				this.advance();
+				this.advance(2);
 				tokens.push(new Token(TokenType.Keyword, "if", currentPosition, this.line));
+				continue;
+			}
+
+			// else if
+			if (this.currentChar === "e" && this.input.slice(this.position, this.position + 6) === "else if") {
+				this.advance(6);
+				tokens.push(new Token(TokenType.Keyword, "else if", currentPosition, this.line));
+				continue;
+			}
+
+			// else
+			if (this.currentChar === "e" && this.input.slice(this.position, this.position + 4) === "else") {
+				this.advance(4);
+				tokens.push(new Token(TokenType.Keyword, "else", currentPosition, this.line));
+				continue;
+			}
+
+			// while
+			if (this.currentChar === "w" && this.input.slice(this.position, this.position + 5) === "while") {
+				this.advance(5);
+				tokens.push(new Token(TokenType.Keyword, "while", currentPosition, this.line));
+				continue;
+			}
+
+			// for
+			if (this.currentChar === "f" && this.input.slice(this.position, this.position + 3) === "for") {
+				this.advance(3);
+				tokens.push(new Token(TokenType.Keyword, "for", currentPosition, this.line));
+				continue;
+			}
+
+			// true
+			if (this.currentChar === "t" && this.input.slice(this.position, this.position + 4) === "true") {
+				this.advance(4);
+				tokens.push(new Token(TokenType.Keyword, "true", currentPosition, this.line));
+				continue;
+			}
+
+			// false
+			if (this.currentChar === "f" && this.input.slice(this.position, this.position + 5) === "false") {
+				this.advance(5);
+				tokens.push(new Token(TokenType.Keyword, "false", currentPosition, this.line));
+				continue;
+			}
+
+			// break
+			if (this.currentChar === "b" && this.input.slice(this.position, this.position + 5) === "break") {
+				this.advance(5);
+				tokens.push(new Token(TokenType.Keyword, "break", currentPosition, this.line));
+				continue;
+			}
+
+			// const
+			if (this.currentChar === "c" && this.input.slice(this.position, this.position + 5) === "const") {
+				this.advance(5);
+				tokens.push(new Token(TokenType.Keyword, "const", currentPosition, this.line));
+				continue;
+			}
+
+			// let
+			if (this.currentChar === "l" && this.input.slice(this.position, this.position + 3) === "let") {
+				this.advance(3);
+				tokens.push(new Token(TokenType.Keyword, "let", currentPosition, this.line));
+				continue;
+			}
+
+			// string delimiter
+			// '
+			if (this.currentChar === "'") {
+				this.advance();
+				tokens.push(new Token(TokenType.StringDelimiter, "'", currentPosition, this.line));
 				continue;
 			}
 
@@ -104,6 +185,21 @@ export class Lexer {
 				continue;
 			}
 
+			// {
+			if (this.currentChar === "{") {
+				this.advance();
+				tokens.push(new Token(TokenType.Bracket, "{", currentPosition, this.line));
+				continue;
+			}
+
+			// }
+
+			if (this.currentChar === "}") {
+				this.advance();
+				tokens.push(new Token(TokenType.Bracket, "}", currentPosition, this.line));
+				continue;
+			}
+
 			if (this.currentChar === "(") {
 				this.advance();
 				tokens.push(new Token(TokenType.Parenthesis, "(", currentPosition, this.line));
@@ -113,6 +209,13 @@ export class Lexer {
 			if (this.currentChar === ")") {
 				this.advance();
 				tokens.push(new Token(TokenType.Parenthesis, ")", currentPosition, this.line));
+				continue;
+			}
+
+			// =
+			if (this.currentChar === "=") {
+				this.advance();
+				tokens.push(new Token(TokenType.Assignment, "=", currentPosition, this.line));
 				continue;
 			}
 
