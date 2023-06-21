@@ -6,8 +6,8 @@ import { Token } from "./token";
 
 function compile(input: string) {
 	const lexer = new Lexer(input);
-	lexer.getAllTokens();
-	const tokens = new Array<Token>();
+	
+	const tokens = lexer.getAllTokens();;
 	console.log(tokens)
 
 /* 	let token = lexer.getNextToken();
@@ -16,13 +16,7 @@ function compile(input: string) {
 		token = lexer.getNextToken();
 	} */
 	return tokens;
-	const parser = new Parser(tokens);
-	try {
-		const result = parser.parse();
-		console.log("Resultado:", result);
-	} catch (error: any) {
-		console.error(error?.message);
-	}
+
 }
 
 function readFile(caminhoArquivo: string): string {

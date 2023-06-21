@@ -130,14 +130,14 @@ export class Lexer {
 			// false
 			if (this.currentChar === "f" && this.input.slice(this.position, this.position + 5) === "false") {
 				this.advance(5);
-				tokens.push(new Token(TokenType.Keyword, "false", currentPosition, this.line));
+				tokens.push(new Token(TokenType.LogicalValue, "false", currentPosition, this.line));
 				continue;
 			}
 
 			// break
 			if (this.currentChar === "b" && this.input.slice(this.position, this.position + 5) === "break") {
 				this.advance(5);
-				tokens.push(new Token(TokenType.Keyword, "break", currentPosition, this.line));
+				tokens.push(new Token(TokenType.LogicalValue, "break", currentPosition, this.line));
 				continue;
 			}
 
@@ -188,7 +188,7 @@ export class Lexer {
 			// {
 			if (this.currentChar === "{") {
 				this.advance();
-				tokens.push(new Token(TokenType.Bracket, "{", currentPosition, this.line));
+				tokens.push(new Token(TokenType.OpenBracket, "{", currentPosition, this.line));
 				continue;
 			}
 
@@ -196,19 +196,19 @@ export class Lexer {
 
 			if (this.currentChar === "}") {
 				this.advance();
-				tokens.push(new Token(TokenType.Bracket, "}", currentPosition, this.line));
+				tokens.push(new Token(TokenType.CloseBracket, "}", currentPosition, this.line));
 				continue;
 			}
 
 			if (this.currentChar === "(") {
 				this.advance();
-				tokens.push(new Token(TokenType.Parenthesis, "(", currentPosition, this.line));
+				tokens.push(new Token(TokenType.OpenParenthesis, "(", currentPosition, this.line));
 				continue;
 			}
 
 			if (this.currentChar === ")") {
 				this.advance();
-				tokens.push(new Token(TokenType.Parenthesis, ")", currentPosition, this.line));
+				tokens.push(new Token(TokenType.CloseParenthesis, ")", currentPosition, this.line));
 				continue;
 			}
 

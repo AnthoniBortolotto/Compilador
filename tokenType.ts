@@ -2,11 +2,14 @@ export enum TokenType {
 	Identifier,
 	Number,
 	Operator,
-	Parenthesis,
+	OpenParenthesis,
+	CloseParenthesis,
 	Keyword,
 	CommandSeparator,
 	Assignment,
 	StringDelimiter,
-	Bracket,
+	OpenBracket,
+	CloseBracket,
+	LogicalValue,
 	EOF
 }

@@ -1,97 +1,125 @@
 import { Lexer } from "./analisador-lexico";
 import { Token } from "./token";
 import { TokenType } from "./tokenType";
+import { isSyncToken } from "./tokensIdentifiers";
 
 export class Parser {
   lexer: Lexer;
   lexerPosition: number;
   currentToken: Token;
   tokenList: Token[];
+  acceptedTokens: TokenType[] = [];
+  buffer: Array<Array<TokenType>> = [];
 
   constructor(input: string) {
     this.lexer = new Lexer(input);
-	this.lexerPosition = 0;
+    this.lexerPosition = 0;
     this.tokenList = this.lexer.getAllTokens();
-	this.currentToken = this.tokenList[this.lexerPosition]
-  }
+    this.buffer = [[TokenType.Keyword]]; // tokens that are accepted by the parser in the current state
+    // ex: if the parser is an open parenthesis, it will accept only close parenthesis and letters
 
-  match(tokenType: TokenType) {
-    if (this.currentToken.type === tokenType) {
-      this.consumeToken();
-    } else {
-      throw new Error(`Syntax error: Expected ${tokenType}, found ${this.currentToken.type}`);
+    // normalize EOF token in the end of the token list
+    if (this.tokenList.length === 0) {
+      throw new Error("Empty input");
     }
-  }
-
-  consumeToken() {
-    this.currentToken = this.tokenList[++this.lexerPosition];
-  }
-
-  program() {
-    this.statementList();
-    this.match(TokenType.EOF);
-  }
-
-  statementList() {
-    this.statement();
-    this.statementListTail();
-  }
-
-  statementListTail() {
-    if (this.currentToken.type === TokenType.CommandSeparator) {
-      this.match(TokenType.CommandSeparator);
-      this.statement();
-      this.statementListTail();
+    const lastValidToken = this.tokenList[this.tokenList.length - 1];
+    if (lastValidToken.type !== TokenType.EOF) {
+      this.tokenList.push(
+        new Token(
+          TokenType.EOF,
+          "",
+          lastValidToken.value.length + lastValidToken.position,
+          lastValidToken.line
+        )
+      );
     }
-  }
-
-  statement() {
-    switch (this.currentToken.type) {
-      case TokenType.Keyword:
-        this.keyword();
-        break;
-      case TokenType.Identifier:
-        this.identifier();
-        break;
-      case TokenType.Number:
-        this.number();
-        break;
-      default:
-        throw new Error(`Syntax error: Unexpected token ${this.currentToken.type}`);
-    }
-  }
-
-  keyword() {
-    if (this.currentToken.value === "if") {
-      this.match(TokenType.Keyword);
-    } else if (this.currentToken.value === "else") {
-      this.match(TokenType.Keyword);
-    } else if (this.currentToken.value === "while") {
-      this.match(TokenType.Keyword);
-    } else {
-      throw new Error(`Syntax error: Unexpected keyword ${this.currentToken.value}`);
-    }
-  }
-
-  identifier() {
-    this.match(TokenType.Identifier);
-  }
-
-  number() {
-    this.match(TokenType.Number);
+    this.currentToken = this.tokenList[this.lexerPosition];
   }
 
   parse() {
-    try {
-      this.program();
-      console.log("Parsing completed successfully.");
-    } catch (error) {
-      console.log("Parsing failed. Error:");
+    while (this.currentToken.type !== TokenType.EOF) {
+      // if the buffer is empty
+      if (
+        this.buffer.length === 0 &&
+        !isSyncToken(this.currentToken) // sync token can be accepted in any state
+      ) {
+        // discard the current token and do not try to parse it
+        this.advance();
+        continue;
+      }
+
+      if (this.currentToken.type === TokenType.Keyword) {
+        this.validateKeyword();
+        continue;
+      }
+      if (this.currentToken.type === TokenType.Identifier) {
+      }
+      if (this.currentToken.type === TokenType.Number) {
+      }
+      if (this.currentToken.type === TokenType.Operator) {
+      }
+      if (this.currentToken.type === TokenType.OpenParenthesis) {
+      }
+      if (this.currentToken.type === TokenType.CloseParenthesis) {
+      }
+      if (this.currentToken.type === TokenType.CommandSeparator) {
+        this.validateCommandSeparator();
+        continue;
+      }
+      if (this.currentToken.type === TokenType.Assignment) {
+      }
+      if (this.currentToken.type === TokenType.StringDelimiter) {
+      }
+      if (this.currentToken.type === TokenType.OpenBracket) {
+      }
+      if (this.currentToken.type === TokenType.CloseBracket) {
+      }
+      if (this.currentToken.type === TokenType.LogicalValue) {
+      }
     }
   }
-}
+  advance() {
+    this.lexerPosition++;
+    this.currentToken = this.tokenList[this.lexerPosition];
+  }
 
-// Usage example
-const input = "if x > 0 { y = x; } else { y = -x; }";
-const parser = new Parser(input);
-parser.parse();
+  validateKeyword() {
+    // if the parser is not in a state that accepts keywords
+    if (!this.buffer[0].find((tokenType) => tokenType === TokenType.Keyword)) {
+      // remove the first state from the buffer
+      this.buffer.shift();
+      this.error();
+      return;
+    }
+    if (this.currentToken.value === "if") {
+      // add to the start of the buffer the states that are accepted after the keyword if
+      this.buffer.unshift([TokenType.OpenParenthesis]);
+    } else if (this.currentToken.value === "else") {
+    } else if (this.currentToken.value === "while") {
+    } else {
+      throw new Error(
+        `Syntax error: Unexpected keyword ${this.currentToken.value}`
+      );
+    }
+  }
+
+  validateCommandSeparator() {
+    if (
+      this.buffer.length !== 0 &&
+      !this.buffer[0].find(
+        (tokenType) => tokenType === TokenType.CommandSeparator
+      )
+    ) {
+      console.log(
+        `Syntax error at line ${this.currentToken.line}: Expected tokens not found`
+      );
+    }
+    this.buffer = [[TokenType.Keyword]];
+  }
+
+  error() {
+    console.log(
+      `Syntax error at line ${this.currentToken.line}: Unexpected token ${this.currentToken.value}`
+    );
+  }
+}
