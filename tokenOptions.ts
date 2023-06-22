@@ -5,4 +5,5 @@ export interface TokenOption {
     repeatable?: boolean
     optional?: boolean
     alreadyRead?: boolean
+    next?: Array<TokenOption[]>
 }

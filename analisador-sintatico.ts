@@ -3,6 +3,7 @@ import { Token } from "./token";
 import { TokenOption } from "./tokenOptions";
 import { TokenType } from "./tokenType";
 import { isSyncToken } from "./tokensIdentifiers";
+import { statementsBuffer } from "./utils";
 
 export class Parser {
   lexer: Lexer;
@@ -17,12 +18,7 @@ export class Parser {
     this.lexerPosition = 0;
     this.tokenList = this.lexer.getAllTokens();
     this.buffer = [
-      [
-        {
-          option: TokenType.Keyword,
-          repeatable: true,
-        },
-      ],
+      statementsBuffer,
     ]; // tokens that are accepted by the parser in the current state
     // ex: if the parser is an open parenthesis, it will accept only close parenthesis and letters
 
@@ -64,17 +60,28 @@ export class Parser {
         this.validateKeyword();
         continue;
       }
+      if (this.currentToken.type === TokenType.DataTypes) {
+        this.validateDataTypes();
+        continue;
+      }
       if (this.currentToken.type === TokenType.Identifier) {
-        this.validateIdentifier();
+        this.genericValidate(TokenType.Identifier);
         continue;
       }
       if (this.currentToken.type === TokenType.ConditionFollow) {
         this.validateConditionFollow();
+        continue;
       }
       if (this.currentToken.type === TokenType.Number) {
+        this.genericValidate(TokenType.Number);
+        continue;
       }
       if (this.currentToken.type === TokenType.ArithmeticOperator) {
         this.validateArithmeticOperator();
+        continue;
+      }
+      if (this.currentToken.type === TokenType.SumOperator) {
+        this.validateSumOperator();
         continue;
       }
       if (this.currentToken.type === TokenType.RelationalOperator) {
@@ -82,35 +89,35 @@ export class Parser {
       if (this.currentToken.type === TokenType.LogicalOperator) {
       }
       if (this.currentToken.type === TokenType.OpenParenthesis) {
-        this.validateOpenParenthesis();
+        this.genericValidate(TokenType.OpenParenthesis);
         continue;
       }
       if (this.currentToken.type === TokenType.CloseParenthesis) {
-        this.validateCloseParenthesis();
+        this.genericValidate(TokenType.CloseParenthesis);
         continue;
       }
       if (this.currentToken.type === TokenType.CommandSeparator) {
-        this.validateCommandSeparator();
+        this.genericValidate(TokenType.CommandSeparator, true);
         continue;
       }
       if (this.currentToken.type === TokenType.Assignment) {
-        this.validateAssignment();
+        this.genericValidate(TokenType.Assignment);
         continue;
       }
       if (this.currentToken.type === TokenType.StringValue) {
-        this.validateStringValue();
+        this.genericValidate(TokenType.StringValue);
         continue;
       }
       if (this.currentToken.type === TokenType.OpenBracket) {
-        this.validateOpenBracket();
+        this.genericValidate(TokenType.OpenBracket);
         continue;
       }
       if (this.currentToken.type === TokenType.CloseBracket) {
-        this.validateCloseBracket();
+        this.genericValidate(TokenType.CloseBracket);
         continue;
       }
       if (this.currentToken.type === TokenType.LogicalValue) {
-        this.validateLogicalValue();
+        this.genericValidate(TokenType.LogicalValue);
         continue;
       }
     }
@@ -146,24 +153,37 @@ export class Parser {
     return false;
   }
 
-  validateLogicalValue() {
-    if (!this.haveOption(TokenType.LogicalValue)) {
-      this.advance();
+  validateArithmeticOperator() {
+    const option = this.haveOption(TokenType.ArithmeticOperator);
+    if (!option) {
       this.error();
+      this.advance();
       return;
     }
     this.buffer.shift();
+    this.buffer.unshift([
+      { option: TokenType.Number },
+      { option: TokenType.Identifier },
+    ]);
     this.advance();
+    this.handleNext(option);
   }
 
-  validateArithmeticOperator() {
-    if (!this.haveOption(TokenType.ArithmeticOperator)) {
-      this.advance();
+  validateSumOperator() {
+    const option = this.haveOption(TokenType.SumOperator);
+    if (!option) {
       this.error();
+      this.advance();
       return;
     }
-    this.buffer.unshift([{ option: TokenType.Number }, { option: TokenType.Identifier }]);
+    this.buffer.shift();
+    this.buffer.unshift([
+      { option: TokenType.Number },
+      { option: TokenType.Identifier },
+      { option: TokenType.StringValue },
+    ]);
     this.advance();
+    this.handleNext(option);
   }
 
   validateKeyword() {
@@ -183,7 +203,7 @@ export class Parser {
         { option: TokenType.ConditionFollow, optional: true },
       ]);
       this.buffer.unshift([{ option: TokenType.CloseBracket }]);
-      this.buffer.unshift([{ option: TokenType.Keyword, repeatable: true }]);
+      this.buffer.unshift(statementsBuffer);
       this.buffer.unshift([{ option: TokenType.OpenBracket }]);
       this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
       this.buffer.unshift([
@@ -194,26 +214,6 @@ export class Parser {
       this.advance();
     } else if (this.currentToken.value === "while") {
     } else if (this.currentToken.value === "for") {
-    } else if (this.currentToken.value === "int") {
-    } else if (this.currentToken.value === "float") {
-    } else if (this.currentToken.value === "string") {
-      this.buffer.shift();
-
-      this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
-      this.buffer.unshift([
-        {
-          option: TokenType.ArithmeticOperator,
-          optional: true,
-        },
-      ]);
-      this.buffer.unshift([
-        { option: TokenType.StringValue },
-        { option: TokenType.Identifier },
-      ]);
-      this.buffer.unshift([{ option: TokenType.Assignment }]);
-      this.buffer.unshift([{ option: TokenType.Identifier }]);
-      this.advance();
-    } else if (this.currentToken.value === "bool") {
     } else {
       throw new Error(
         `Syntax error: Unexpected keyword ${this.currentToken.value}`
@@ -221,83 +221,112 @@ export class Parser {
     }
   }
 
-  validateCommandSeparator() {
-    if (!this.haveOption(TokenType.CommandSeparator)) {
+  validateDataTypes() {
+    const option = this.haveOption(TokenType.DataTypes);
+    if (!option) {
+      this.error();
+      this.advance();
+      return;
+    }
+
+    // verify if last token was a command separator
+    if (
+      this.lexerPosition === 0 ||
+      [TokenType.CommandSeparator, TokenType.OpenBracket].includes(
+        this.peekBehind().type
+      ) ||
+      this.peekBehind().type === TokenType.CommandSeparator
+    ) {
+      if (
+        this.currentToken.value === "int" ||
+        this.currentToken.value === "float"
+      ) {
+        this.buffer.shift();
+
+        this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+        this.buffer.unshift([
+          {
+            option: TokenType.ArithmeticOperator,
+            optional: true,
+            repeatable: true,
+          },
+          {
+            option: TokenType.SumOperator,
+            optional: true,
+            repeatable: true,
+          },
+        ]);
+        this.buffer.unshift([
+          { option: TokenType.Number },
+          { option: TokenType.Identifier },
+        ]);
+        this.buffer.unshift([{ option: TokenType.Assignment }]);
+        this.buffer.unshift([{ option: TokenType.Identifier }]);
+        this.advance();
+      } else if (this.currentToken.value === "string") {
+        this.buffer.shift();
+
+        this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+        this.buffer.unshift([
+          {
+            option: TokenType.SumOperator,
+            optional: true,
+            repeatable: true,
+          },
+        ]);
+        this.buffer.unshift([
+          { option: TokenType.StringValue },
+          { option: TokenType.Identifier },
+        ]);
+        this.buffer.unshift([{ option: TokenType.Assignment }]);
+        this.buffer.unshift([{ option: TokenType.Identifier }]);
+        this.advance();
+      } else if (this.currentToken.value === "bool") {
+        this.buffer.shift();
+
+        this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+        this.buffer.unshift([
+          {
+            option: TokenType.LogicalOperator,
+            optional: true,
+            repeatable: true,
+          },
+          {
+            option: TokenType.RelationalOperator,
+            optional: true,
+            repeatable: true,
+          },
+        ]);
+        this.buffer.unshift([
+          { option: TokenType.LogicalValue },
+          { option: TokenType.Identifier },
+        ]);
+        this.buffer.unshift([{ option: TokenType.Assignment }]);
+        this.buffer.unshift([{ option: TokenType.Identifier }]);
+        this.advance();
+      }
+    } else {
+      this.buffer.shift();
+      this.advance();
+    }
+    this.handleNext(option);
+  }
+
+  genericValidate(tokenType: TokenType, isSyncToken: boolean = false) {
+    const option = this.haveOption(tokenType);
+    if (!option && isSyncToken) {
       this.error();
       this.buffer.shift();
       return;
+    } else if (!option) {
+      this.error();
+      this.advance();
+      return;
     }
+
     this.buffer.shift();
     this.advance();
-    //   this.buffer = [[TokenType.Keyword]];
-  }
-
-  validateOpenParenthesis() {
-    if (!this.haveOption(TokenType.OpenParenthesis)) {
-      this.error();
-      this.advance();
-    } else {
-      this.buffer.shift();
-      this.advance();
-    }
-  }
-
-  validateCloseParenthesis() {
-    if (!this.haveOption(TokenType.CloseParenthesis)) {
-      this.error();
-      this.advance();
-    } else {
-      this.buffer.shift();
-      this.advance();
-    }
-  }
-
-  validateAssignment() {
-    if (!this.haveOption(TokenType.Assignment)) {
-      this.error();
-      this.advance();
-    }
-    this.buffer.shift();
-    this.advance();
-  }
-
-  validateStringValue() {
-    if (!this.haveOption(TokenType.StringValue)) {
-      this.error();
-      this.advance();
-    }
-    this.buffer.shift();
-    this.advance();
-  }
-
-  validateIdentifier() {
-    if (!this.haveOption(TokenType.Identifier)) {
-      this.error();
-      this.advance();
-    } else {
-      this.buffer.shift();
-      this.advance();
-    }
-  }
-
-  validateOpenBracket() {
-    if (!this.haveOption(TokenType.OpenBracket)) {
-      this.error();
-      this.advance();
-    } else {
-      this.buffer.shift();
-      this.advance();
-    }
-  }
-
-  validateCloseBracket() {
-    if (!this.haveOption(TokenType.CloseBracket)) {
-      this.error();
-      this.advance();
-    } else {
-      this.buffer.shift();
-      this.advance();
-    }
+    this.handleNext(option);
   }
 
   validateConditionFollow() {
@@ -317,6 +346,19 @@ export class Parser {
     }
   }
 
+  handleNext(currentToken: TokenOption) {
+    if (currentToken.next) {
+      const correctNext = currentToken.next.find(
+        (current) => {
+          const startCurrentOption = current[current.length - 1].option;
+          return startCurrentOption === this.currentToken.type
+        }
+          
+      );
+      this.buffer.unshift(correctNext ? correctNext : currentToken.next[0]);
+    }
+  }
+
   // utility functions
 
   error() {
@@ -332,5 +374,9 @@ export class Parser {
   advance() {
     this.lexerPosition++;
     this.currentToken = this.tokenList[this.lexerPosition];
+  }
+
+  peekBehind() {
+    return this.tokenList[this.lexerPosition - 1];
   }
 }

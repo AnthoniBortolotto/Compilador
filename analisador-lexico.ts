@@ -207,6 +207,8 @@ export class Lexer {
         continue;
       }
 
+      // Data Types
+
       // int
       if (
         this.currentChar === "i" &&
@@ -214,7 +216,7 @@ export class Lexer {
       ) {
         this.advance(3);
         tokens.push(
-          new Token(TokenType.Keyword, "int", currentPosition, this.line)
+          new Token(TokenType.DataTypes, "int", currentPosition, this.line)
         );
         continue;
       }
@@ -226,7 +228,7 @@ export class Lexer {
       ) {
         this.advance(6);
         tokens.push(
-          new Token(TokenType.Keyword, "string", currentPosition, this.line)
+          new Token(TokenType.DataTypes, "string", currentPosition, this.line)
         );
         continue;
       }
@@ -238,7 +240,7 @@ export class Lexer {
       ) {
         this.advance(4);
         tokens.push(
-          new Token(TokenType.Keyword, "bool", currentPosition, this.line)
+          new Token(TokenType.DataTypes, "bool", currentPosition, this.line)
         );
         continue;
       }
@@ -250,7 +252,7 @@ export class Lexer {
       ) {
         this.advance(5);
         tokens.push(
-          new Token(TokenType.Keyword, "float", currentPosition, this.line)
+          new Token(TokenType.DataTypes, "float", currentPosition, this.line)
         );
         continue;
       }
@@ -286,7 +288,7 @@ export class Lexer {
         this.advance();
         tokens.push(
           new Token(
-            TokenType.ArithmeticOperator,
+            TokenType.SumOperator,
             "+",
             currentPosition,
             this.line
@@ -463,6 +465,23 @@ export class Lexer {
         tokens.push(
           new Token(TokenType.Assignment, "=", currentPosition, this.line)
         );
+        continue;
+      }
+
+      // ,
+
+      if (this.currentChar === ",") {
+        this.advance();
+        tokens.push(
+          new Token(TokenType.Comma, ",", currentPosition, this.line)
+        );
+        continue;
+      }
+
+      // .
+      if (this.currentChar === ".") {
+        this.advance();
+        tokens.push(new Token(TokenType.Dot, ".", currentPosition, this.line));
         continue;
       }
 

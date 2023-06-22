@@ -1,5 +1,7 @@
+int x = 12 * 2;
 if (true) {
     string home = 'casa' + x;
+    home = 'oi';
 }
 //const x =  'abc'; // sou um comentario
 //const   y = 'def'; // sou um comentario

@@ -7,13 +7,6 @@ import { Token } from "./token";
 function compile(input: string) {
 	const parser = new Parser(input);
 	parser.parse();
-/* 	let token = lexer.getNextToken();
-	while (token.type !== TokenType.Identifier) {
-		tokens.push(token);
-		token = lexer.getNextToken();
-	} */
-
-
 }
 
 function readFile(caminhoArquivo: string): string {
@@ -22,6 +15,4 @@ function readFile(caminhoArquivo: string): string {
 
 const fileContent = readFile("entrada.txt");
 
-// Exemplo de uso
-const result = compile(fileContent);
-//console.log(result);
+compile(fileContent);
