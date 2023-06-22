@@ -5,17 +5,14 @@ import * as fs from "fs";
 import { Token } from "./token";
 
 function compile(input: string) {
-	const lexer = new Lexer(input);
-	
-	const tokens = lexer.getAllTokens();;
-	console.log(tokens)
-
+	const parser = new Parser(input);
+	parser.parse();
 /* 	let token = lexer.getNextToken();
 	while (token.type !== TokenType.Identifier) {
 		tokens.push(token);
 		token = lexer.getNextToken();
 	} */
-	return tokens;
+
 
 }
 

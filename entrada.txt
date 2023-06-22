@@ -1,5 +1,6 @@
-if (true) 22 + 34;
-let home = 'casa';
+if (true) {
+    string home = 'casa' + x;
+}
 //const x =  'abc'; // sou um comentario
 //const   y = 'def'; // sou um comentario
 //for (let i = 0; i < x.length; i++) {
