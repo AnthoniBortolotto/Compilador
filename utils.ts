@@ -128,7 +128,7 @@ export const statementsBuffer: TokenOption[] = [
             [
               {
                 option: TokenType.LogicalValue,
-                next: [],
+           //     next: [],
               },
             ],
             [

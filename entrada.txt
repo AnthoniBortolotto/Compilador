@@ -1,4 +1,4 @@
-string x = 'a' + 3;
+x = z || y;
 
 for (i = 0; i < 10; i = i + 1) {
     string x = 'a' + 3;

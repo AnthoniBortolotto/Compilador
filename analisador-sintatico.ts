@@ -3,7 +3,11 @@ import { Token } from "./token";
 import { TokenOption } from "./tokenOptions";
 import { TokenType } from "./tokenType";
 import { isSyncToken } from "./tokensIdentifiers";
-import { statementsBuffer } from "./utils";
+import {
+  LogicalOperatorExpression,
+  RelationalOperatorExpression,
+  statementsBuffer,
+} from "./utils";
 
 export class Parser {
   lexer: Lexer;
@@ -115,7 +119,7 @@ export class Parser {
         continue;
       }
       if (this.currentToken.type === TokenType.CloseBracket) {
-        this.genericValidate(TokenType.CloseBracket);
+        this.genericValidate(TokenType.CloseBracket, true);
         continue;
       }
       if (this.currentToken.type === TokenType.LogicalValue) {
@@ -391,26 +395,25 @@ export class Parser {
         this.buffer.unshift([{ option: TokenType.Identifier }]);
         this.advance();
       } else if (this.currentToken.value === "bool") {
-        // need to be finished
-        this.buffer.shift();
 
-        this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+        this.buffer.shift();
+     //   this.buffer.unshift([{ option: TokenType.CommandSeparator }]); logical operators put it in the buffer
+
         this.buffer.unshift([
           {
-            option: TokenType.LogicalOperator,
-            optional: true,
-            repeatable: true,
+            option: TokenType.LogicalValue,
+            next: [[LogicalOperatorExpression]],
           },
           {
-            option: TokenType.RelationalOperator,
-            optional: true,
-            repeatable: true,
+            option: TokenType.Identifier,
+            next: [[LogicalOperatorExpression, RelationalOperatorExpression]],
+          },
+          {
+            option: TokenType.Number,
+            next: [[RelationalOperatorExpression]],
           },
         ]);
-        this.buffer.unshift([
-          { option: TokenType.LogicalValue },
-          { option: TokenType.Identifier },
-        ]);
+
         this.buffer.unshift([{ option: TokenType.Assignment }]);
         this.buffer.unshift([{ option: TokenType.Identifier }]);
         this.advance();
