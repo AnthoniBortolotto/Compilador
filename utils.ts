@@ -1,6 +1,56 @@
+import { log } from "console";
 import { TokenType } from "./tokenType";
+import { TokenOption } from "./tokenOptions";
 
-export const statementsBuffer = [
+export const SumOperatorExpression = {
+  option: TokenType.SumOperator,
+  next: [
+    [
+      {
+        option: TokenType.CommandSeparator,
+      },
+    ],
+  ],
+};
+
+export const ArithmeticOperatorExpression = {
+  option: TokenType.ArithmeticOperator,
+  next: [
+    [
+      {
+        option: TokenType.CommandSeparator,
+      },
+    ],
+  ],
+};
+
+export const LogicalOperatorExpression = {
+  option: TokenType.LogicalOperator,
+  next: [
+    [
+      {
+        option: TokenType.CommandSeparator,
+      },
+    ],
+  ],
+};
+
+export const RelationalOperatorExpression = {
+  option: TokenType.RelationalOperator,
+  next: [
+    [
+      {
+        option: TokenType.CommandSeparator,
+      },
+    ],
+  ],
+};
+
+export const CommandSeparatorExpression = {
+  option: TokenType.CommandSeparator,
+};
+
+export const statementsBuffer: TokenOption[] = [
   {
     option: TokenType.Keyword,
     repeatable: true,
@@ -65,27 +115,34 @@ export const statementsBuffer = [
             ],
             [
               {
-                option: TokenType.ArithmeticOperator,
-                optional: true,
-                repeatable: true,
-              },
-              {
                 option: TokenType.Number,
+                next: [
+                  [
+                    CommandSeparatorExpression,
+                    SumOperatorExpression,
+                    ArithmeticOperatorExpression,
+                  ],
+                ],
               },
             ],
             [
               {
                 option: TokenType.LogicalValue,
+                next: [],
               },
             ],
             [
               {
-                option: TokenType.ArithmeticOperator,
-                optional: true,
-                repeatable: true,
-              },
-              {
                 option: TokenType.Identifier,
+                next: [
+                  [
+                    SumOperatorExpression,
+                    ArithmeticOperatorExpression,
+                    LogicalOperatorExpression,
+                    CommandSeparatorExpression,
+                    RelationalOperatorExpression,
+                  ],
+                ],
               },
             ],
           ],

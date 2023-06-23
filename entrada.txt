@@ -1,7 +1,14 @@
-int x = 12 * 2;
-if (true) {
-    string home = 'casa' + x;
-    home = 'oi';
+string x = 'a' + 3;
+
+for (i = 0; i < 10; i = i + 1) {
+    string x = 'a' + 3;
+    if (true) {
+        string home = 'casa' + x;
+        home = 'oi';
+    }
+    while(x) {
+        string x = 'a' + 3;
+    }
 }
 //const x =  'abc'; // sou um comentario
 //const   y = 'def'; // sou um comentario

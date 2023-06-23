@@ -396,6 +396,20 @@ export class Lexer {
         continue;
       }
 
+      // !=
+      if (this.currentChar === "!" && this.input[this.position + 1] === "=") {
+        this.advance(2);
+        tokens.push(
+          new Token(
+            TokenType.RelationalOperator,
+            "!=",
+            currentPosition,
+            this.line
+          )
+        );
+        continue;
+      }
+
       // <
       if (this.currentChar === "<") {
         this.advance();

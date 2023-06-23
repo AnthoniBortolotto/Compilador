@@ -17,9 +17,7 @@ export class Parser {
     this.lexer = new Lexer(input);
     this.lexerPosition = 0;
     this.tokenList = this.lexer.getAllTokens();
-    this.buffer = [
-      statementsBuffer,
-    ]; // tokens that are accepted by the parser in the current state
+    this.buffer = [statementsBuffer]; // tokens that are accepted by the parser in the current state
     // ex: if the parser is an open parenthesis, it will accept only close parenthesis and letters
 
     // normalize EOF token in the end of the token list
@@ -85,8 +83,12 @@ export class Parser {
         continue;
       }
       if (this.currentToken.type === TokenType.RelationalOperator) {
+        this.validateRelationalOperator();
+        continue;
       }
       if (this.currentToken.type === TokenType.LogicalOperator) {
+        this.validateLogicalOperator();
+        continue;
       }
       if (this.currentToken.type === TokenType.OpenParenthesis) {
         this.genericValidate(TokenType.OpenParenthesis);
@@ -161,12 +163,57 @@ export class Parser {
       return;
     }
     this.buffer.shift();
+
+    this.advance();
+    this.handleNext(option);
     this.buffer.unshift([
       { option: TokenType.Number },
       { option: TokenType.Identifier },
     ]);
+  }
+
+  validateLogicalOperator() {
+    // && ||
+    const option = this.haveOption(TokenType.LogicalOperator);
+    if (!option) {
+      this.error();
+      this.advance();
+      return;
+    }
+    this.buffer.shift();
+
     this.advance();
     this.handleNext(option);
+    this.buffer.unshift([{ option: TokenType.Identifier }]);
+  }
+
+  validateRelationalOperator() {
+    // > < >= <= == !=
+    const option = this.haveOption(TokenType.RelationalOperator);
+    if (!option) {
+      this.error();
+      this.advance();
+      return;
+    }
+
+    this.buffer.shift();
+    if ([">", "<", ">=", "<="].includes(this.currentToken.value)) {
+      this.advance();
+      this.handleNext(option);
+      this.buffer.unshift([
+        { option: TokenType.Identifier },
+        { option: TokenType.Number },
+      ]);
+    } else {
+      this.advance();
+      this.handleNext(option);
+      this.buffer.unshift([
+        { option: TokenType.Identifier },
+        { option: TokenType.Number },
+        { option: TokenType.StringValue },
+        { option: TokenType.LogicalValue },
+      ]);
+    }
   }
 
   validateSumOperator() {
@@ -177,13 +224,14 @@ export class Parser {
       return;
     }
     this.buffer.shift();
+
+    this.advance();
+    this.handleNext(option);
     this.buffer.unshift([
       { option: TokenType.Number },
       { option: TokenType.Identifier },
       { option: TokenType.StringValue },
     ]);
-    this.advance();
-    this.handleNext(option);
   }
 
   validateKeyword() {
@@ -213,7 +261,68 @@ export class Parser {
       this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
       this.advance();
     } else if (this.currentToken.value === "while") {
+      // remove the first state from the buffer
+      this.buffer.shift();
+
+      // add to the start of the buffer the states that are accepted after the keyword if
+      this.buffer.unshift([{ option: TokenType.CloseBracket }]);
+      this.buffer.unshift(statementsBuffer);
+      this.buffer.unshift([{ option: TokenType.OpenBracket }]);
+      this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
+      this.buffer.unshift([
+        { option: TokenType.LogicalValue },
+        { option: TokenType.Identifier },
+      ]);
+      this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
+      this.advance();
     } else if (this.currentToken.value === "for") {
+      // for (i = 0; i < 10; i = i + 1) {
+      // }
+      this.buffer.shift();
+
+      // add to the start of the buffer the states that are accepted after the keyword if
+      this.buffer.unshift([{ option: TokenType.CloseBracket }]);
+      this.buffer.unshift(statementsBuffer);
+      this.buffer.unshift([{ option: TokenType.OpenBracket }]);
+      this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
+
+      // i = i + 1
+      this.buffer.unshift([
+        { option: TokenType.ArithmeticOperator, optional: true },
+        { option: TokenType.SumOperator, optional: true },
+      ]);
+      this.buffer.unshift([
+        { option: TokenType.Number },
+        { option: TokenType.Identifier },
+      ]);
+      this.buffer.unshift([{ option: TokenType.Assignment }]);
+      this.buffer.unshift([
+        {
+          option: TokenType.Identifier,
+        },
+      ]);
+      this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+
+      // i < 10
+
+      this.buffer.unshift([{ option: TokenType.RelationalOperator }]);
+      this.buffer.unshift([
+        {
+          option: TokenType.Identifier,
+        },
+      ]);
+      this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
+
+      // i = 0
+
+      this.buffer.unshift([{ option: TokenType.Number }]);
+
+      this.buffer.unshift([{ option: TokenType.Assignment }]);
+
+      this.buffer.unshift([{ option: TokenType.Identifier }]);
+
+      this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
+      this.advance();
     } else {
       throw new Error(
         `Syntax error: Unexpected keyword ${this.currentToken.value}`
@@ -282,6 +391,7 @@ export class Parser {
         this.buffer.unshift([{ option: TokenType.Identifier }]);
         this.advance();
       } else if (this.currentToken.value === "bool") {
+        // need to be finished
         this.buffer.shift();
 
         this.buffer.unshift([{ option: TokenType.CommandSeparator }]);
@@ -348,13 +458,10 @@ export class Parser {
 
   handleNext(currentToken: TokenOption) {
     if (currentToken.next) {
-      const correctNext = currentToken.next.find(
-        (current) => {
-          const startCurrentOption = current[current.length - 1].option;
-          return startCurrentOption === this.currentToken.type
-        }
-          
-      );
+      const correctNext = currentToken.next.find((current) => {
+        const startCurrentOption = current[current.length - 1].option;
+        return startCurrentOption === this.currentToken.type;
+      });
       this.buffer.unshift(correctNext ? correctNext : currentToken.next[0]);
     }
   }
