@@ -81,6 +81,55 @@ export const functionParameterExpression: TokenOption[] = [
   },
 ];
 
+export const functionCallParameterNext = [
+  [
+    {
+      option: TokenType.Comma,
+      optional: true,
+      repeatable: true,
+      next: [
+        [
+          {
+            option: TokenType.Identifier,
+          },
+          {
+            option: TokenType.StringValue,
+          },
+          {
+            option: TokenType.Number,
+          },
+          {
+            option: TokenType.LogicalValue,
+          },
+        ],
+      ],
+    },
+  ],
+]
+
+export const functionCallParameterExpression: TokenOption[] = [
+  {
+    option: TokenType.Identifier,
+    next: functionCallParameterNext,
+    optional: true,
+  },
+  {
+    option: TokenType.StringValue,
+    next: functionCallParameterNext,
+    optional: true,
+  },
+  {
+    option: TokenType.Number,
+    next: functionCallParameterNext,
+    optional: true,
+  },
+  {
+    option: TokenType.LogicalValue,
+    next: functionCallParameterNext,
+    optional: true,
+  },
+];
+
 export const statementsBuffer: TokenOption[] = [
   {
     option: TokenType.Keyword,
@@ -94,31 +143,6 @@ export const statementsBuffer: TokenOption[] = [
     option: TokenType.Identifier,
     repeatable: true,
     next: [
-      [
-        // function call
-        {
-          option: TokenType.CommandSeparator,
-        },
-        {
-          option: TokenType.CloseParenthesis,
-        },
-        {
-          option: TokenType.Identifier,
-          optional: true,
-          repeatable: true,
-          next: [
-            [
-              {
-                option: TokenType.Comma,
-                optional: true,
-              },
-            ],
-          ],
-        },
-        {
-          option: TokenType.OpenParenthesis,
-        },
-      ],
       [
         // reassignment
         {

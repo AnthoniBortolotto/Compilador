@@ -6,6 +6,7 @@ import { isSyncToken } from "./tokensIdentifiers";
 import {
   LogicalOperatorExpression,
   RelationalOperatorExpression,
+  functionCallParameterExpression,
   functionParameterExpression,
   statementsBuffer,
 } from "./utils";
@@ -68,7 +69,7 @@ export class Parser {
         continue;
       }
       if (this.currentToken.type === TokenType.Identifier) {
-        this.genericValidate(TokenType.Identifier);
+        this.validateIdentifier();
         continue;
       }
       if (this.currentToken.type === TokenType.ConditionFollow) {
@@ -455,6 +456,37 @@ export class Parser {
     this.handleNext(option);
   }
 
+  validateIdentifier() {
+    const option = this.haveOption(TokenType.Identifier);
+    if (!option) {
+      this.error();
+      this.advance();
+      return;
+    }
+
+    const behindToken = this.peekBehind();
+    const nextToken = this.peekNext();
+    if (
+      behindToken.type === TokenType.Keyword ||
+      nextToken.type !== TokenType.OpenParenthesis
+    ) {
+      this.buffer.shift();
+      this.advance();
+      this.handleNext(option);
+    } else {
+      // function call
+      // only place where handleNext is called before new states are added to the buffer
+      this.buffer.shift();
+      this.handleNext(option);
+
+      this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
+      this.buffer.unshift(functionCallParameterExpression);
+      this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
+
+      this.advance();
+    }
+  }
+
   validateConditionFollow() {
     if (!this.haveOption(TokenType.ConditionFollow)) {
       // remove the first state from the buffer
@@ -523,7 +555,14 @@ export class Parser {
     this.currentToken = this.tokenList[this.lexerPosition];
   }
 
-  peekBehind() {
-    return this.tokenList[this.lexerPosition - 1];
+  peekBehind(): Token {
+    return this.lexerPosition - 1 >= 0
+      ? this.tokenList[this.lexerPosition - 1]
+      : new Token(TokenType.EOF, "", 0, 0);
+  }
+  peekNext() {
+    return this.lexerPosition + 1 < this.tokenList.length
+      ? this.tokenList[this.lexerPosition + 1]
+      : new Token(TokenType.EOF, "", 0, 0);
   }
 }
