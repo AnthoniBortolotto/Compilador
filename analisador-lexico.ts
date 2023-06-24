@@ -116,9 +116,9 @@ export class Lexer {
       // else if
       if (
         this.currentChar === "e" &&
-        this.input.slice(this.position, this.position + 6) === "else if"
+        this.input.slice(this.position, this.position + 7) === "else if"
       ) {
-        this.advance(6);
+        this.advance(7);
         tokens.push(
           new Token(
             TokenType.ConditionFollow,

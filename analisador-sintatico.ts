@@ -126,6 +126,8 @@ export class Parser {
         this.genericValidate(TokenType.LogicalValue);
         continue;
       }
+      if (this.currentToken.type === TokenType.Comma) {}
+     
     }
   }
 
@@ -395,9 +397,8 @@ export class Parser {
         this.buffer.unshift([{ option: TokenType.Identifier }]);
         this.advance();
       } else if (this.currentToken.value === "bool") {
-
         this.buffer.shift();
-     //   this.buffer.unshift([{ option: TokenType.CommandSeparator }]); logical operators put it in the buffer
+        //   this.buffer.unshift([{ option: TokenType.CommandSeparator }]); logical operators put it in the buffer
 
         this.buffer.unshift([
           {
@@ -451,7 +452,31 @@ export class Parser {
     }
 
     if (this.currentToken.value === "else if") {
+      // remove the first state from the buffer
+      this.buffer.shift();
+
+      // add to the start of the buffer the states that are accepted after the keyword if
+      this.buffer.unshift([
+        { option: TokenType.ConditionFollow, optional: true },
+      ]);
+      this.buffer.unshift([{ option: TokenType.CloseBracket }]);
+      this.buffer.unshift(statementsBuffer);
+      this.buffer.unshift([{ option: TokenType.OpenBracket }]);
+      this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
+      this.buffer.unshift([
+        { option: TokenType.LogicalValue },
+        { option: TokenType.Identifier },
+      ]);
+      this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
+      this.advance();
     } else if (this.currentToken.value === "else") {
+      // remove the first state from the buffer
+      this.buffer.shift();
+
+      this.buffer.unshift([{ option: TokenType.CloseBracket }]);
+      this.buffer.unshift(statementsBuffer);
+      this.buffer.unshift([{ option: TokenType.OpenBracket }]);
+      this.advance();
     } else {
       throw new Error(
         `Syntax error: Unexpected Condition Follow ${this.currentToken.value}`

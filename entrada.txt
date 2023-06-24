@@ -6,9 +6,16 @@ for (i = 0; i < 10; i = i + 1) {
         string home = 'casa' + x;
         home = 'oi';
     }
-    while(x) {
-        string x = 'a' + 3;
+    else if (true) {
+        string home = 'casa' + x;
+        home = 'oi';
     }
+    else {
+        while(x) {
+            string x = 'a' + 3;
+        }
+    }
+    
 }
 //const x =  'abc'; // sou um comentario
 //const   y = 'def'; // sou um comentario
