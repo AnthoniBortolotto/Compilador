@@ -1,3 +1,8 @@
+
+function abc(string nome, number numero) {
+    x = z || y;
+}
+
 x = z || y;
 number x = 2.32 + 1;
 for (i = 0; i < 10; i = i + 1) {

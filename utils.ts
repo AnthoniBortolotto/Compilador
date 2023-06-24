@@ -50,6 +50,37 @@ export const CommandSeparatorExpression = {
   option: TokenType.CommandSeparator,
 };
 
+export const functionParameterExpression: TokenOption[] = [
+  {
+    option: TokenType.DataTypes,
+    optional: true,
+    next: [
+      [
+        {
+          option: TokenType.Identifier,
+          next: [
+            [
+              {
+                option: TokenType.Comma,
+                optional: true,
+                repeatable: true,
+                next: [
+                  [
+                    {
+                      option: TokenType.DataTypes,
+                      next: [[{ option: TokenType.Identifier }]],
+                    },
+                  ],
+                ],
+              },
+            ],
+          ],
+        },
+      ],
+    ],
+  },
+];
+
 export const statementsBuffer: TokenOption[] = [
   {
     option: TokenType.Keyword,
@@ -128,7 +159,7 @@ export const statementsBuffer: TokenOption[] = [
             [
               {
                 option: TokenType.LogicalValue,
-           //     next: [],
+                //     next: [],
               },
             ],
             [

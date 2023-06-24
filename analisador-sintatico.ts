@@ -6,6 +6,7 @@ import { isSyncToken } from "./tokensIdentifiers";
 import {
   LogicalOperatorExpression,
   RelationalOperatorExpression,
+  functionParameterExpression,
   statementsBuffer,
 } from "./utils";
 
@@ -126,8 +127,10 @@ export class Parser {
         this.genericValidate(TokenType.LogicalValue);
         continue;
       }
-      if (this.currentToken.type === TokenType.Comma) {}
-     
+      if (this.currentToken.type === TokenType.Comma) {
+        this.genericValidate(TokenType.Comma);
+        continue;
+      }
     }
   }
 
@@ -329,6 +332,18 @@ export class Parser {
 
       this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
       this.advance();
+    } else if (this.currentToken.value === "function") {
+      this.buffer.shift();
+
+      this.buffer.unshift([{ option: TokenType.CloseBracket }]);
+      this.buffer.unshift(statementsBuffer);
+      this.buffer.unshift([{ option: TokenType.OpenBracket }]);
+      this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
+      this.buffer.unshift(functionParameterExpression);
+      this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
+      this.buffer.unshift([{ option: TokenType.Identifier }]);
+
+      this.advance();
     } else {
       throw new Error(
         `Syntax error: Unexpected keyword ${this.currentToken.value}`
@@ -352,9 +367,7 @@ export class Parser {
       ) ||
       this.peekBehind().type === TokenType.CommandSeparator
     ) {
-      if (
-        this.currentToken.value === "number"
-      ) {
+      if (this.currentToken.value === "number") {
         this.buffer.shift();
 
         this.buffer.unshift([{ option: TokenType.CommandSeparator }]);

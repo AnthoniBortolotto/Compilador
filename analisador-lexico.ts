@@ -159,6 +159,18 @@ export class Lexer {
         continue;
       }
 
+      //function
+      if (
+        this.currentChar === "f" &&
+        this.input.slice(this.position, this.position + 8) === "function"
+      ) {
+        this.advance(8);
+        tokens.push(
+          new Token(TokenType.Keyword, "function", currentPosition, this.line)
+        );
+        continue;
+      }
+
       // for
       if (
         this.currentChar === "f" &&
