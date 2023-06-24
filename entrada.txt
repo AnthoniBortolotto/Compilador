@@ -1,4 +1,4 @@
-zx(11, 'as', true, asa);
+n = as.bc();
 
 function abc(string nome, number numero) {
     x = z || y;

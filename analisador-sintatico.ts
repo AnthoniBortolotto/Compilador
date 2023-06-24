@@ -132,6 +132,10 @@ export class Parser {
         this.genericValidate(TokenType.Comma);
         continue;
       }
+      if (this.currentToken.type === TokenType.Dot) {
+        this.genericValidate(TokenType.Dot);
+        continue;
+      }
     }
   }
 
@@ -457,6 +461,7 @@ export class Parser {
   }
 
   validateIdentifier() {
+    // only place where handleNext is called before new states are added to the buffer
     const option = this.haveOption(TokenType.Identifier);
     if (!option) {
       this.error();
@@ -468,21 +473,40 @@ export class Parser {
     const nextToken = this.peekNext();
     if (
       behindToken.type === TokenType.Keyword ||
-      nextToken.type !== TokenType.OpenParenthesis
+      (nextToken.type !== TokenType.OpenParenthesis &&
+        nextToken.type !== TokenType.Dot)
     ) {
       this.buffer.shift();
       this.advance();
       this.handleNext(option);
-    } else {
+    } else if (nextToken.type === TokenType.OpenParenthesis) {
       // function call
-      // only place where handleNext is called before new states are added to the buffer
+
       this.buffer.shift();
       this.handleNext(option);
-
+      this.buffer.unshift([
+        {
+          option: TokenType.Dot,
+          optional: true,
+          next: [
+            [
+              {
+                option: TokenType.Identifier,
+              },
+            ],
+          ],
+        },
+      ]);
       this.buffer.unshift([{ option: TokenType.CloseParenthesis }]);
       this.buffer.unshift(functionCallParameterExpression);
       this.buffer.unshift([{ option: TokenType.OpenParenthesis }]);
 
+      this.advance();
+    } else if (nextToken.type === TokenType.Dot) {
+      this.buffer.shift();
+      this.handleNext(option);
+      this.buffer.unshift([{ option: TokenType.Identifier }]);
+      this.buffer.unshift([{ option: TokenType.Dot }]);
       this.advance();
     }
   }

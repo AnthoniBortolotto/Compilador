@@ -18,5 +18,4 @@ const fileContent = readFile("entrada.txt");
 compile(fileContent);
 
 // todo:
-// criar function
-// implementar .
+// melhorar quando esvaazia o buffer
