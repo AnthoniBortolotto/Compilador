@@ -11,7 +11,7 @@ export enum TokenType {
   ConditionFollow, // else else if
   Comma, // ,
   Dot, // .
-  DataTypes, // int float string bool
+  DataTypes, // number string bool
   CommandSeparator, // ;
   Assignment, // =
   StringValue, // "bom dia"

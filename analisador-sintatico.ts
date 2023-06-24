@@ -353,8 +353,7 @@ export class Parser {
       this.peekBehind().type === TokenType.CommandSeparator
     ) {
       if (
-        this.currentToken.value === "int" ||
-        this.currentToken.value === "float"
+        this.currentToken.value === "number"
       ) {
         this.buffer.shift();
 

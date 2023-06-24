@@ -209,14 +209,14 @@ export class Lexer {
 
       // Data Types
 
-      // int
+      // number
       if (
-        this.currentChar === "i" &&
-        this.input.slice(this.position, this.position + 3) === "int"
+        this.currentChar === "n" &&
+        this.input.slice(this.position, this.position + 6) === "number"
       ) {
-        this.advance(3);
+        this.advance(6);
         tokens.push(
-          new Token(TokenType.DataTypes, "int", currentPosition, this.line)
+          new Token(TokenType.DataTypes, "number", currentPosition, this.line)
         );
         continue;
       }
@@ -241,18 +241,6 @@ export class Lexer {
         this.advance(4);
         tokens.push(
           new Token(TokenType.DataTypes, "bool", currentPosition, this.line)
-        );
-        continue;
-      }
-
-      // float
-      if (
-        this.currentChar === "f" &&
-        this.input.slice(this.position, this.position + 5) === "float"
-      ) {
-        this.advance(5);
-        tokens.push(
-          new Token(TokenType.DataTypes, "float", currentPosition, this.line)
         );
         continue;
       }
@@ -492,6 +480,11 @@ export class Lexer {
         continue;
       }
 
+      if (isDigit(this.currentChar)) {
+        tokens.push(this.getNumberToken(currentPosition));
+        continue;
+      }
+
       // .
       if (this.currentChar === ".") {
         this.advance();
@@ -504,10 +497,7 @@ export class Lexer {
         continue;
       }
 
-      if (isDigit(this.currentChar)) {
-        tokens.push(this.getNumberToken(currentPosition));
-        continue;
-      }
+
 
       this.error();
       this.advance();
@@ -534,9 +524,12 @@ export class Lexer {
 
   getNumberToken(startPosition: number) {
     let result = "";
-
-    while (this.currentChar !== null && isDigit(this.currentChar)) {
+    let dotCount = 0;
+    while (this.currentChar !== null && (isDigit(this.currentChar) || (this.currentChar === "." && dotCount < 1))) {
       result += this.currentChar;
+      if (this.currentChar === ".") {
+        dotCount++;
+      }
       this.advance();
     }
 

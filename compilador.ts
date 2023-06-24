@@ -18,7 +18,5 @@ const fileContent = readFile("entrada.txt");
 compile(fileContent);
 
 // todo:
-// - criar else if
-// - criar else
 // criar function
-// criar float
+// implementar .
