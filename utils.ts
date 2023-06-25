@@ -156,14 +156,8 @@ export const statementsBuffer: TokenOption[] = [
                 option: TokenType.StringValue,
                 next: [
                   [
-                    {
-                      option: TokenType.CommandSeparator,
-                    },
-                    {
-                      option: TokenType.SumOperator,
-                      optional: true,
-                      repeatable: true,
-                    },
+                    CommandSeparatorExpression,
+                    SumOperatorExpression
                   ],
                 ],
               },

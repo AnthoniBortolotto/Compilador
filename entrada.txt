@@ -3,11 +3,12 @@ n = as.bc();
 function abc(string nome, number numero) {
     x = z || y;
 }
-
-x = z || y;
+string anthoni = 'abc';
+number b = 32 + 15;
+anthoni = '12' + b;
 number x = 2.32 + zx();
 for (i = 0; i < 10; i = i + 1) {
-    string x = 'a' + 3;
+    string x = 'a' * 3;
     if (true) {
         string home = 'casa' + x;
         home = 'oi';

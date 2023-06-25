@@ -49,6 +49,7 @@ export class Parser {
       if (this.validateOptionalsAndRepeatables()) {
         continue;
       }
+
       // if the buffer is empty
       if (
         this.buffer.length === 0 &&
