@@ -46,6 +46,9 @@ export class Parser {
 
   parse() {
     while (this.currentToken.type !== TokenType.EOF) {
+      if(this.buffer.length === 0) {
+        break;
+      }
       if (this.validateOptionalsAndRepeatables()) {
         continue;
       }
