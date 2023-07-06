@@ -1,31 +1,15 @@
 n = as.bc();
 
-function abc(string nome, number numero) {
-    x = z || y;
-}
-string anthoni = 'abc';
-number b = 32 + 15;
-anthoni = '12' + b;
-number x = 2.32 + zx();
-for (i = 0; i < 10; i = i + 1) {
-    string x = 'a' * 3;
-    if (true) {
-        string home = 'casa' + x;
-        home = 'oi';
-    }
-    else if (true) {
-        string home = 'casa' + x;
-        home = 'oi';
-    }
-    else {
-        while(x) {
-            string x = 'a' + 3;
-        }
-    }
-    
-}
+
+
 //const x =  'abc'; // sou um comentario
 //const   y = 'def'; // sou um comentario
 //for (let i = 0; i < x.length; i++) {
 //  console.log(i);
 //}
+
+string anthoni = 'abc';
+
+if (anthoni) {
+    number oi = 2 * 4;
+}

@@ -53,17 +53,6 @@ export class Parser {
         continue;
       }
 
-      // if the buffer is empty
-      if (
-        this.buffer.length === 0 &&
-        !isSyncToken(this.currentToken) // sync token can be accepted in any state
-        // use global sync tokens, verify later
-      ) {
-        // discard the current token and do not try to parse it
-        this.advance();
-        continue;
-      }
-
       if (this.currentToken.type === TokenType.Keyword) {
         this.validateKeyword();
         continue;
